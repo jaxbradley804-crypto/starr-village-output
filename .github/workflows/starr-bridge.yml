@@ -1,0 +1,73 @@
+name: STARR Bridge Receiver
+
+on:
+  repository_dispatch:
+    types: [starr_event]
+  workflow_dispatch:
+    inputs:
+      event_id:
+        description: "Unique STARR event ID"
+        required: true
+        type: string
+      source:
+        description: "Event source"
+        required: true
+        type: string
+      payload:
+        description: "JSON payload"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: starr-bridge
+  cancel-in-progress: false
+
+jobs:
+  receive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Normalize event
+        env:
+          DISPATCH_PAYLOAD: ${{ toJson(github.event.client_payload) }}
+          INPUT_EVENT_ID: ${{ inputs.event_id }}
+          INPUT_SOURCE: ${{ inputs.source }}
+          INPUT_PAYLOAD: ${{ inputs.payload }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          mkdir -p bridge/events
+          if [ "$EVENT_NAME" = "repository_dispatch" ]; then
+            python - <<'PY'
+          import json, os, pathlib
+          p = json.loads(os.environ.get("DISPATCH_PAYLOAD") or "{}")
+          event_id = p.get("event_id") or "missing-event-id"
+          source = p.get("source") or "unknown"
+          pathlib.Path("bridge/events").mkdir(parents=True, exist_ok=True)
+          pathlib.Path(f"bridge/events/{event_id}.json").write_text(
+              json.dumps({"event_id": event_id, "source": source, "payload": p.get("payload", p)}, indent=2) + "\n"
+          )
+          PY
+          else
+            python - <<'PY'
+          import json, os, pathlib
+          event_id = os.environ["INPUT_EVENT_ID"]
+          payload = json.loads(os.environ["INPUT_PAYLOAD"])
+          pathlib.Path("bridge/events").mkdir(parents=True, exist_ok=True)
+          pathlib.Path(f"bridge/events/{event_id}.json").write_text(
+              json.dumps({"event_id": event_id, "source": os.environ["INPUT_SOURCE"], "payload": payload}, indent=2) + "\n"
+          )
+          PY
+          fi
+
+      - name: Commit bridge event
+        run: |
+          git config user.name "STARR Bridge"
+          git config user.email "actions@users.noreply.github.com"
+          git add bridge/events
+          git diff --cached --quiet || git commit -m "chore: record STARR bridge event"
+          git push
