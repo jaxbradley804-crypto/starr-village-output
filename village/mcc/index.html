@@ -13,8 +13,8 @@ body{margin:0;background:#061018;color:#dff7ff;font:14px system-ui,sans-serif}he
 <div class="grid">
 <div class="card"><b>CANONICAL REGISTRY</b><br><span class="ok">176 named roles</span><br><span class="muted">Zite source-of-truth registry</span></div>
 <div class="card"><b>RUNTIME RECORDS</b><br><span class="warn">160 records</span><br><span class="muted">149 unique agent names; duplicate blocker records exist</span></div>
-<div class="card"><b>EXACT NAME MATCH</b><br><span class="warn">5 / 176</span><br><span class="muted">Exact-name check only; semantic matches are not counted here</span></div>
-<div class="card"><b>RECONCILIATION STATE</b><br><span class="warn">IN PROGRESS</span><br><span class="muted">No runtime records are being deleted or overwritten</span></div>
+<div class="card"><b>EXACT NAME MATCH</b><br><span class="warn">5 / 176</span><br><span class="muted">Verified exact-name matches. 171 canonical roles still require reconciliation.</span></div>
+<div class="card"><b>RECONCILIATION STATE</b><br><span class="warn">IN PROGRESS — 171 TO CHECK</span><br><span class="muted">No runtime records are being deleted or overwritten; exact matches are evidence-only.</span></div>
 </div>
 <div class="todo"><b>Repair rule:</b> canonical roles stay intact; existing runtime agents stay intact; aliases/semantic matches must be recorded explicitly; only verified runtime evidence can change a role to Runtime Matched. This prevents the 176↔160 mismatch from being hidden by renaming or deletion.</div>
 <h2>Village Control Contract</h2><div class="grid">
